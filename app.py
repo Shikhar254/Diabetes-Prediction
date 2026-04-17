@@ -1,71 +1,82 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import numpy as np
 import pickle
-import sqlite3
-from datetime import datetime
 import os
+from datetime import datetime
+import psycopg2
 
 app = Flask(__name__)
 
-# SECRET KEY from Render Environment Variables
+# ---------------------- SECRET KEY ----------------------
 app.secret_key = os.getenv("SECRET_KEY", "diabetes_secret_key")
 
-# ADMIN LOGIN from Render Environment Variables
+# ---------------------- ADMIN LOGIN VARIABLES ----------------------
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
 
+# ---------------------- DATABASE URL (Railway PostgreSQL) ----------------------
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ---------------------- DATABASE SETUP ----------------------
+
+# ---------------------- DATABASE CONNECTION ----------------------
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
+
+
+# ---------------------- CREATE TABLE ----------------------
 def create_table():
-    conn = sqlite3.connect("patients.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS patient_records (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        datetime TEXT,
-        name TEXT,
-        age INTEGER,
-        gender TEXT,
-        symptoms TEXT,
-        pregnancies REAL,
-        glucose REAL,
-        bloodpressure REAL,
-        skinthickness REAL,
-        insulin REAL,
-        bmi REAL,
-        dpf REAL,
-        prediction TEXT,
-        outcome INTEGER
-    )
+        CREATE TABLE IF NOT EXISTS patient_records (
+            id SERIAL PRIMARY KEY,
+            datetime TEXT,
+            name TEXT,
+            age INTEGER,
+            gender TEXT,
+            symptoms TEXT,
+            pregnancies REAL,
+            glucose REAL,
+            bloodpressure REAL,
+            skinthickness REAL,
+            insulin REAL,
+            bmi REAL,
+            dpf REAL,
+            prediction TEXT,
+            outcome INTEGER
+        );
     """)
 
     conn.commit()
+    cursor.close()
     conn.close()
 
 
+# ---------------------- SAVE DATA ----------------------
 def save_to_database(data):
-    conn = sqlite3.connect("patients.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO patient_records (
-        datetime, name, age, gender, symptoms,
-        pregnancies, glucose, bloodpressure, skinthickness, insulin,
-        bmi, dpf, prediction, outcome
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO patient_records (
+            datetime, name, age, gender, symptoms,
+            pregnancies, glucose, bloodpressure, skinthickness, insulin,
+            bmi, dpf, prediction, outcome
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, data)
 
     conn.commit()
+    cursor.close()
     conn.close()
 
 
-# Create table if not exists
+# Create table when app starts
 create_table()
 
 
-# ---------------------- LOAD MODEL ----------------------
+# ---------------------- LOAD MODEL + SCALER ----------------------
 model = pickle.load(open("diabetes_model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
 
@@ -118,7 +129,7 @@ def predict():
     if insulin == 0:
         insulin = 80
 
-    # Input Data
+    # Prepare input
     data = [pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]
     final_data = np.array([data])
 
@@ -135,7 +146,7 @@ def predict():
         prediction_result = "Not Diabetic"
         outcome = 0
 
-    # Save to Database
+    # Save record into PostgreSQL
     save_to_database((
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         session.get("name"),
@@ -187,12 +198,13 @@ def dashboard():
     if not session.get("admin_logged_in"):
         return redirect(url_for("admin"))
 
-    conn = sqlite3.connect("patients.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM patient_records ORDER BY id DESC")
     records = cursor.fetchall()
 
+    cursor.close()
     conn.close()
 
     return render_template("dashboard.html", records=records)
@@ -204,5 +216,7 @@ def logout():
     return redirect(url_for("admin"))
 
 
+# ---------------------- RUN APP ----------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
