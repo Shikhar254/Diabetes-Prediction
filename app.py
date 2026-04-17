@@ -4,15 +4,15 @@ import pickle
 import sqlite3
 from datetime import datetime
 import os
-from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.secret_key = "diabetes_secret_key"
 
-# Load environment variables
-load_dotenv()
-ADMIN_USER = os.getenv("ADMIN_USER")
-ADMIN_PASS = os.getenv("ADMIN_PASS")
+# SECRET KEY from Render Environment Variables
+app.secret_key = os.getenv("SECRET_KEY", "diabetes_secret_key")
+
+# ADMIN LOGIN from Render Environment Variables
+ADMIN_USER = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
 
 
 # ---------------------- DATABASE SETUP ----------------------
@@ -61,6 +61,7 @@ def save_to_database(data):
     conn.close()
 
 
+# Create table if not exists
 create_table()
 
 
@@ -84,9 +85,9 @@ def patient():
 @app.route("/form", methods=["GET", "POST"])
 def form():
     if request.method == "POST":
-        session["name"] = request.form["name"]
-        session["age"] = request.form["age"]
-        session["gender"] = request.form["gender"]
+        session["name"] = request.form.get("name")
+        session["age"] = request.form.get("age")
+        session["gender"] = request.form.get("gender")
 
         symptoms = request.form.getlist("symptoms")
         session["symptoms"] = ", ".join(symptoms)
@@ -103,13 +104,13 @@ def form():
 @app.route("/predict", methods=["POST"])
 def predict():
     pregnancies = float(request.form.get("Pregnancies", 0))
-    glucose = float(request.form["Glucose"])
-    bp = float(request.form["BloodPressure"])
-    skin = float(request.form["SkinThickness"])
-    insulin = float(request.form["Insulin"])
-    bmi = float(request.form["BMI"])
-    dpf = float(request.form["DiabetesPedigreeFunction"])
-    age = float(request.form["Age"])
+    glucose = float(request.form.get("Glucose", 0))
+    bp = float(request.form.get("BloodPressure", 0))
+    skin = float(request.form.get("SkinThickness", 0))
+    insulin = float(request.form.get("Insulin", 0))
+    bmi = float(request.form.get("BMI", 0))
+    dpf = float(request.form.get("DiabetesPedigreeFunction", 0))
+    age = float(request.form.get("Age", session.get("age", 0)))
 
     # Fix missing values
     if skin == 0:
@@ -117,12 +118,14 @@ def predict():
     if insulin == 0:
         insulin = 80
 
+    # Input Data
     data = [pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]
     final_data = np.array([data])
 
-    # Scale input
+    # Scale input data
     final_data = scaler.transform(final_data)
 
+    # Prediction
     prediction = model.predict(final_data)
 
     if prediction[0] == 1:
@@ -132,7 +135,7 @@ def predict():
         prediction_result = "Not Diabetic"
         outcome = 0
 
-    # SAVE TO DATABASE
+    # Save to Database
     save_to_database((
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         session.get("name"),
@@ -167,7 +170,7 @@ def admin():
     error = None
 
     if request.method == "POST":
-        username = request.form["username"]
+        username = request.form.get("username")
         password = request.form.get("password")
 
         if username == ADMIN_USER and password == ADMIN_PASS:
