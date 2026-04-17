@@ -7,82 +7,94 @@ import psycopg2
 
 app = Flask(__name__)
 
-# ---------------------- SECRET KEY ----------------------
+# ---------------- SECRET KEY ----------------
 app.secret_key = os.getenv("SECRET_KEY", "diabetes_secret_key")
 
-# ---------------------- ADMIN LOGIN VARIABLES ----------------------
+# ---------------- ADMIN LOGIN ----------------
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
 
-# ---------------------- DATABASE URL (Railway PostgreSQL) ----------------------
-DATABASE_URL = os.getenv("DATABASE_URL")
+# ---------------- DATABASE ----------------
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if not DATABASE_URL:
+    print("WARNING: DATABASE_URL not found in environment variables")
 
 
-# ---------------------- DATABASE CONNECTION ----------------------
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+    return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 
-# ---------------------- CREATE TABLE ----------------------
+# ---------------- CREATE TABLE ----------------
 def create_table():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS patient_records (
-            id SERIAL PRIMARY KEY,
-            datetime TEXT,
-            name TEXT,
-            age INTEGER,
-            gender TEXT,
-            symptoms TEXT,
-            pregnancies REAL,
-            glucose REAL,
-            bloodpressure REAL,
-            skinthickness REAL,
-            insulin REAL,
-            bmi REAL,
-            dpf REAL,
-            prediction TEXT,
-            outcome INTEGER
-        );
-    """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS patient_records (
+                id SERIAL PRIMARY KEY,
+                datetime TEXT,
+                name TEXT,
+                age INTEGER,
+                gender TEXT,
+                symptoms TEXT,
+                pregnancies REAL,
+                glucose REAL,
+                bloodpressure REAL,
+                skinthickness REAL,
+                insulin REAL,
+                bmi REAL,
+                dpf REAL,
+                prediction TEXT,
+                outcome INTEGER
+            );
+        """)
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        print("Table created successfully")
+
+    except Exception as e:
+        print("DB Error (create_table):", e)
 
 
-# ---------------------- SAVE DATA ----------------------
+# ---------------- SAVE DATA ----------------
 def save_to_database(data):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        INSERT INTO patient_records (
-            datetime, name, age, gender, symptoms,
-            pregnancies, glucose, bloodpressure, skinthickness, insulin,
-            bmi, dpf, prediction, outcome
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, data)
+        cursor.execute("""
+            INSERT INTO patient_records (
+                datetime, name, age, gender, symptoms,
+                pregnancies, glucose, bloodpressure, skinthickness, insulin,
+                bmi, dpf, prediction, outcome
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, data)
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print("DB Error (insert):", e)
 
 
-# Create table when app starts
-create_table()
+# Run table creation safely
+with app.app_context():
+    create_table()
 
 
-# ---------------------- LOAD MODEL + SCALER ----------------------
+# ---------------- LOAD ML MODEL ----------------
 model = pickle.load(open("diabetes_model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
 
 
-# ---------------------- ROUTES ----------------------
-
+# ---------------- ROUTES ----------------
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -123,30 +135,24 @@ def predict():
     dpf = float(request.form.get("DiabetesPedigreeFunction", 0))
     age = float(request.form.get("Age", session.get("age", 0)))
 
-    # Fix missing values
+    # fix missing values
     if skin == 0:
         skin = 20
     if insulin == 0:
         insulin = 80
 
-    # Prepare input
-    data = [pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]
-    final_data = np.array([data])
+    data = np.array([[pregnancies, glucose, bp, skin, insulin, bmi, dpf, age]])
+    data = scaler.transform(data)
 
-    # Scale input data
-    final_data = scaler.transform(final_data)
-
-    # Prediction
-    prediction = model.predict(final_data)
+    prediction = model.predict(data)
 
     if prediction[0] == 1:
-        prediction_result = "Diabetes Detected"
+        result = "Diabetes Detected"
         outcome = 1
     else:
-        prediction_result = "Not Diabetic"
+        result = "Not Diabetic"
         outcome = 0
 
-    # Save record into PostgreSQL
     save_to_database((
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         session.get("name"),
@@ -160,13 +166,13 @@ def predict():
         insulin,
         bmi,
         dpf,
-        prediction_result,
+        result,
         outcome
     ))
 
     return render_template(
         "result.html",
-        prediction=prediction_result,
+        prediction=result,
         name=session.get("name"),
         age=session.get("age"),
         gender=session.get("gender"),
@@ -174,17 +180,13 @@ def predict():
     )
 
 
-# ---------------------- ADMIN LOGIN ----------------------
-
+# ---------------- ADMIN ----------------
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     error = None
 
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-
-        if username == ADMIN_USER and password == ADMIN_PASS:
+        if request.form.get("username") == ADMIN_USER and request.form.get("password") == ADMIN_PASS:
             session["admin_logged_in"] = True
             return redirect(url_for("dashboard"))
         else:
@@ -216,7 +218,7 @@ def logout():
     return redirect(url_for("admin"))
 
 
-# ---------------------- RUN APP ----------------------
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
