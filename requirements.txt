@@ -4,3 +4,5 @@ pandas
 scikit-learn
 gunicorn
 python-dotenv
+psycopg2-binary
+pickle-mixin
