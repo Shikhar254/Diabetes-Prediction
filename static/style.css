@@ -1,0 +1,191 @@
+/* GLOBAL */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f4f7fc;
+    margin: 0;
+    padding: 0;
+}
+
+/* CARD DESIGN */
+.main-card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.12);
+    background: white;
+}
+
+/* HEADER */
+.header-section {
+    background: linear-gradient(135deg, #0d6efd, #00c6ff);
+    padding: 25px;
+    text-align: center;
+    color: white;
+}
+
+.header-section h2 {
+    font-weight: 700;
+    margin-bottom: 5px;
+    font-size: 28px;
+}
+
+.header-section p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* FORM LABEL */
+.form-label {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* INPUT */
+.form-control,
+.form-select {
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 14px;
+}
+
+/* BUTTON */
+.btn-custom {
+    background: linear-gradient(135deg, #0d6efd, #00c6ff);
+    border: none;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 12px;
+    transition: 0.3s ease;
+}
+
+.btn-custom:hover {
+    transform: scale(1.02);
+    opacity: 0.9;
+}
+
+/* LANDING PAGE */
+.landing-page {
+    min-height: 100vh;
+    background: url("https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1400&q=80");
+    background-size: cover;
+    background-position: center;
+}
+
+.landing-overlay {
+    min-height: 100vh;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* ABOUT / INFO CARDS */
+.card ul {
+    padding-left: 18px;
+}
+
+.card ul li {
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+/* RESULT PAGE ALERT */
+.alert {
+    border-radius: 14px;
+    font-size: 16px;
+}
+
+/* RESPONSIVE FIXES */
+@media (max-width: 992px) {
+    .header-section h2 {
+        font-size: 24px;
+    }
+
+    .header-section p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-section {
+        padding: 18px;
+    }
+
+    .header-section h2 {
+        font-size: 22px;
+    }
+
+    .header-section p {
+        font-size: 12px;
+    }
+
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 13px;
+        padding: 10px;
+    }
+
+    .btn-custom {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .landing-page h1 {
+        font-size: 30px;
+    }
+
+    .landing-page p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    .header-section h2 {
+        font-size: 20px;
+    }
+
+    .landing-page h1 {
+        font-size: 26px;
+    }
+
+    .landing-page p {
+        font-size: 13px;
+    }
+
+    .btn-custom {
+        font-size: 13px;
+        padding: 10px;
+    }
+}
+
+
+/* =============================== */
+/* HOME PAGE CARD HOVER ONLY */
+/* =============================== */
+
+.home-section .card {
+    transition: all 0.4s ease-in-out;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.home-section .card:hover {
+    transform: translateY(-8px) scale(1.03);
+    background: linear-gradient(135deg, #0d6efd, #00c6ff);
+    color: white;
+    box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.home-section .card:hover h5,
+.home-section .card:hover p,
+.home-section .card:hover li {
+    color: white !important;
+}

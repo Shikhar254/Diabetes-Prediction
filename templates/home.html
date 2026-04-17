@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Prediction | Home</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- HERO SECTION -->
+    <div class="landing-page">
+        <div class="landing-overlay">
+            <div class="container text-center text-white">
+
+                <h1 class="fw-bold display-4">Diabetes Prediction System</h1>
+                <p class="lead mt-3">
+                    A Machine Learning Based Web Application to predict diabetes risk using patient medical details.
+                </p>
+
+                <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap">
+
+                    <a href="/patient" class="btn btn-lg btn-custom px-5 py-3">
+                        Check Diabetes Now
+                    </a>
+
+                    <a href="/admin" target="_blank" class="btn btn-lg btn-outline-light px-5 py-3">
+                        Admin Login
+                    </a>
+
+                </div>
+
+                <div class="mt-4">
+                    <p class="small">
+                        ⚠ This tool is for educational purpose only. Always consult a doctor for medical diagnosis.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ABOUT DIABETES SECTION -->
+    <section class="py-5 bg-light home-section">
+        <div class="container">
+
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-primary">About Diabetes</h2>
+                <p class="text-muted">
+                    Diabetes is a chronic medical condition that occurs when the body is unable to properly regulate
+                    blood sugar (glucose). Glucose is the main source of energy for the body, and insulin is the hormone
+                    responsible for helping glucose enter the cells. If insulin production is low or the body cannot use
+                    insulin effectively, glucose builds up in the bloodstream, leading to high blood sugar levels.
+                </p>
+            </div>
+
+            <div class="row g-4">
+
+                <!-- What is Diabetes -->
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">What is Diabetes?</h5>
+                        <p class="text-muted mt-2">
+                            Diabetes occurs when the body either does not produce enough insulin or cannot use insulin
+                            properly. This causes increased blood sugar levels, which can damage organs over time.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Symptoms -->
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">Common Symptoms</h5>
+                        <ul class="text-muted mt-2">
+                            <li>Frequent urination</li>
+                            <li>Increased thirst</li>
+                            <li>Sudden weight loss</li>
+                            <li>Fatigue and weakness</li>
+                            <li>Blurred vision</li>
+                            <li>Slow healing wounds</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Prevention -->
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">Prevention Tips</h5>
+                        <ul class="text-muted mt-2">
+                            <li>Maintain a healthy diet</li>
+                            <li>Exercise regularly</li>
+                            <li>Control body weight</li>
+                            <li>Avoid excessive sugar intake</li>
+                            <li>Check blood sugar regularly</li>
+                            <li>Avoid smoking and alcohol</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- TYPES OF DIABETES SECTION -->
+    <section class="py-5 home-section">
+        <div class="container">
+
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-primary">Types of Diabetes</h2>
+                <p class="text-muted">
+                    Diabetes is mainly classified into three major types. Each type has different causes and risk
+                    factors.
+                </p>
+            </div>
+
+            <div class="row g-4">
+
+                <!-- Type 1 -->
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">Type 1 Diabetes</h5>
+                        <p class="text-muted mt-2">
+                            Type 1 diabetes is an autoimmune condition where the body attacks insulin-producing cells
+                            in the pancreas. People with Type 1 diabetes require insulin injections regularly.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Type 2 -->
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">Type 2 Diabetes</h5>
+                        <p class="text-muted mt-2">
+                            Type 2 diabetes is the most common type. It happens when the body becomes resistant to
+                            insulin or does not produce enough insulin. It is mainly caused by obesity and unhealthy lifestyle.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Gestational -->
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">Gestational Diabetes</h5>
+                        <p class="text-muted mt-2">
+                            Gestational diabetes occurs during pregnancy. It usually disappears after delivery but
+                            increases the risk of developing Type 2 diabetes later in life.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+</body>
+
+</html>

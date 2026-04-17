@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div class="card main-card">
+
+                    <div class="header-section">
+                        <h2>Prediction Result</h2>
+                        <p>Diabetes Risk Analysis Report</p>
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <!-- PATIENT DETAILS -->
+                        <h5 class="text-primary fw-bold">Patient Information</h5>
+                        <hr>
+
+                        <p><b>Name:</b> {{ name }}</p>
+                        <p><b>Age:</b> {{ age }}</p>
+                        <p><b>Gender:</b> {{ gender }}</p>
+
+                        {% if symptoms %}
+                        <p><b>Symptoms:</b> {{ symptoms }}</p>
+                        {% endif %}
+
+                        <hr>
+
+                        <!-- RESULT -->
+                        <h5 class="text-primary fw-bold">Prediction Output</h5>
+
+                        {% if prediction == "Not Diabetic" %}
+                        <div class="alert alert-success text-center fw-bold">
+                            ✅ Result: {{ prediction }}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-danger text-center fw-bold">
+                            ⚠ Result: {{ prediction }}
+                        </div>
+                        {% endif %}
+
+                        <!-- RECOMMENDATIONS -->
+                        <h5 class="text-primary fw-bold mt-4">Recommendations</h5>
+
+                        {% if prediction == "Not Diabetic" %}
+                        <ul>
+                            <li>Maintain balanced diet and avoid excess sugar.</li>
+                            <li>Exercise at least 30 minutes daily.</li>
+                            <li>Maintain healthy body weight.</li>
+                            <li>Drink enough water and sleep properly.</li>
+                            <li>Check blood sugar once every 3-6 months.</li>
+                        </ul>
+                        {% else %}
+                        <ul>
+                            <li>Consult a doctor immediately for confirmation.</li>
+                            <li>Avoid sugar, sweets, cold drinks, and junk food.</li>
+                            <li>Follow a proper diet plan recommended by doctor.</li>
+                            <li>Start daily walking or exercise regularly.</li>
+                            <li>Monitor blood sugar regularly.</li>
+                            <li>Avoid smoking and alcohol.</li>
+                        </ul>
+                        {% endif %}
+
+                        <div class="text-center mt-4">
+                            <a href="/" class="btn btn-outline-primary">Back to Home</a>
+                            <a href="/patient" class="btn btn-primary">Check Another Patient</a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <p class="text-muted text-center mt-3" style="font-size: 13px;">
+                    ⚠ This result is generated using Machine Learning model and is for educational purposes only.
+                    Please consult a doctor for final diagnosis.
+                </p>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
