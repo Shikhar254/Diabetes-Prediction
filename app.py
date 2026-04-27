@@ -212,6 +212,22 @@ def dashboard():
     return render_template("dashboard.html", records=records)
 
 
+@app.route("/delete/<int:id>")
+def delete_record(id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("admin"))
+
+    conn = sqlite3.connect("patients.db")
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM patient_records WHERE id = ?", (id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("dashboard"))
+
+
 @app.route("/logout")
 def logout():
     session.pop("admin_logged_in", None)
