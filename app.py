@@ -217,16 +217,20 @@ def delete_record(id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("admin"))
 
-    conn = sqlite3.connect("patients.db")
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM patient_records WHERE id = ?", (id,))
+        cursor.execute("DELETE FROM patient_records WHERE id = %s", (id,))
+        conn.commit()
 
-    conn.commit()
-    conn.close()
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print("Delete Error:", e)
 
     return redirect(url_for("dashboard"))
-
 
 @app.route("/logout")
 def logout():
