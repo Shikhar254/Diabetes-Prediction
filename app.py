@@ -4,6 +4,15 @@ import pickle
 import os
 from datetime import datetime
 import psycopg2
+from reportlab.pdfgen import canvas
+from flask import send_file
+import io
+
+
+
+
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -31,6 +40,7 @@ def create_table():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Diabetes Prediction Table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS patient_records (
                 id SERIAL PRIMARY KEY,
@@ -51,15 +61,43 @@ def create_table():
             );
         """)
 
+        # Pathology Lab Patients Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS lab_patients (
+                patient_id SERIAL PRIMARY KEY,
+                patient_name TEXT NOT NULL,
+                age INTEGER NOT NULL,
+                gender TEXT NOT NULL,
+                phone TEXT,
+                address TEXT,
+                doctor_name TEXT,
+                created_at TEXT
+            );
+        """)
+
+        # Lab Reports Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS lab_reports (
+                report_id SERIAL PRIMARY KEY,
+                patient_id INTEGER REFERENCES lab_patients(patient_id) ON DELETE CASCADE,
+                report_date TEXT,
+                glucose REAL,
+                hba1c REAL,
+                blood_pressure TEXT,
+                cholesterol REAL,
+                hemoglobin REAL,
+                remarks TEXT
+            );
+        """)
+
         conn.commit()
         cursor.close()
         conn.close()
 
-        print("Table created successfully")
+        print("All tables created successfully!")
 
     except Exception as e:
         print("DB Error (create_table):", e)
-
 
 # ---------------- SAVE DATA ----------------
 def save_to_database(data):
@@ -178,7 +216,170 @@ def predict():
         gender=session.get("gender"),
         symptoms=session.get("symptoms")
     )
+# Pathology home page
+@app.route("/lab")
+def lab_home():
+    return render_template("lab_home.html")
 
+#Patient Registration Page
+@app.route("/lab/register", methods=["GET", "POST"])
+def lab_register():
+    if request.method == "POST":
+        patient_name = request.form.get("patient_name")
+        age = request.form.get("age")
+        gender = request.form.get("gender")
+        phone = request.form.get("phone")
+        address = request.form.get("address")
+        doctor_name = request.form.get("doctor_name")
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO lab_patients (patient_name, age, gender, phone, address, doctor_name, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING patient_id
+        """, (patient_name, age, gender, phone, address, doctor_name, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        patient_id = cursor.fetchone()[0]
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for("lab_report_form", patient_id=patient_id))
+
+    return render_template("lab_register.html")
+
+#Report form Page
+@app.route("/lab/report/<int:patient_id>", methods=["GET", "POST"])
+def lab_report_form(patient_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM lab_patients WHERE patient_id=%s", (patient_id,))
+    patient = cursor.fetchone()
+
+    if request.method == "POST":
+        glucose = request.form.get("glucose")
+        hba1c = request.form.get("hba1c")
+        bp = request.form.get("blood_pressure")
+        cholesterol = request.form.get("cholesterol")
+        hemoglobin = request.form.get("hemoglobin")
+
+        remarks = "Normal"
+        if float(glucose) > 140 or float(hba1c) > 6.5:
+            remarks = "High Risk"
+
+        cursor.execute("""
+            INSERT INTO lab_reports (patient_id, report_date, glucose, hba1c, blood_pressure, cholesterol, hemoglobin, remarks)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING report_id
+        """, (
+            patient_id,
+            datetime.now().strftime("%Y-%m-%d"),
+            glucose,
+            hba1c,
+            bp,
+            cholesterol,
+            hemoglobin,
+            remarks
+        ))
+
+        report_id = cursor.fetchone()[0]
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for("lab_view_report", report_id=report_id))
+
+    cursor.close()
+    conn.close()
+
+    return render_template("lab_report_form.html", patient=patient)
+
+#View Report page
+@app.route("/lab/view/<int:report_id>")
+def lab_view_report(report_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT r.report_id, r.report_date, r.glucose, r.hba1c, r.blood_pressure, r.cholesterol, r.hemoglobin, r.remarks,
+               p.patient_name, p.age, p.gender, p.phone, p.address, p.doctor_name
+        FROM lab_reports r
+        JOIN lab_patients p ON r.patient_id = p.patient_id
+        WHERE r.report_id = %s
+    """, (report_id,))
+
+    report = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("lab_report_view.html", report=report)
+
+#Download Report 
+@app.route("/lab/download/<int:report_id>")
+def download_report(report_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT r.report_id, r.report_date, r.glucose, r.hba1c, r.blood_pressure, r.cholesterol, r.hemoglobin, r.remarks,
+               p.patient_name, p.age, p.gender, p.phone, p.address, p.doctor_name
+        FROM lab_reports r
+        JOIN lab_patients p ON r.patient_id = p.patient_id
+        WHERE r.report_id = %s
+    """, (report_id,))
+
+    report = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if not report:
+        return "Report not found!"
+
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer)
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(200, 800, "Pathology Lab Report")
+
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(50, 760, f"Report ID: {report[0]}")
+    pdf.drawString(50, 740, f"Report Date: {report[1]}")
+
+    pdf.drawString(50, 700, f"Patient Name: {report[8]}")
+    pdf.drawString(50, 680, f"Age: {report[9]}")
+    pdf.drawString(50, 660, f"Gender: {report[10]}")
+    pdf.drawString(50, 640, f"Phone: {report[11]}")
+    pdf.drawString(50, 620, f"Doctor: {report[13]}")
+
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawString(50, 580, "Test Results:")
+
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(50, 550, f"Glucose: {report[2]} mg/dL")
+    pdf.drawString(50, 530, f"HbA1c: {report[3]} %")
+    pdf.drawString(50, 510, f"Blood Pressure: {report[4]}")
+    pdf.drawString(50, 490, f"Cholesterol: {report[5]} mg/dL")
+    pdf.drawString(50, 470, f"Hemoglobin: {report[6]} g/dL")
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(50, 430, f"Remarks: {report[7]}")
+
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(50, 100, "Disclaimer: This report is generated digitally for reference purposes.")
+
+    pdf.showPage()
+    pdf.save()
+
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True, download_name=f"Report_{report_id}.pdf", mimetype="application/pdf")
 
 # ---------------- ADMIN ----------------
 @app.route("/admin", methods=["GET", "POST"])
@@ -237,8 +438,29 @@ def logout():
     session.pop("admin_logged_in", None)
     return redirect(url_for("admin"))
 
+@app.route("/lab/dashboard")
+def lab_dashboard():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("admin"))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT r.report_id, r.report_date, p.patient_name, p.age, p.gender, r.remarks
+        FROM lab_reports r
+        JOIN lab_patients p ON r.patient_id = p.patient_id
+        ORDER BY r.report_id DESC
+    """)
+
+    reports = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("lab_dashboard.html", reports=reports)
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug= True)

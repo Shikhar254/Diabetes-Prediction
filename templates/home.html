@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diabetes Prediction | Home</title>
+    <title>HealthCare System | Diabetes & Pathology Lab</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -24,15 +24,21 @@
         <div class="landing-overlay">
             <div class="container text-center text-white">
 
-                <h1 class="fw-bold display-4">Diabetes Prediction System</h1>
+                <h1 class="fw-bold display-4">HealthCare Diagnosis & Pathology Lab System</h1>
+
                 <p class="lead mt-3">
-                    A Machine Learning Based Web Application to predict diabetes risk using patient medical details.
+                    A smart healthcare web application that provides Diabetes Prediction using Machine Learning and
+                    Pathology Lab Report Management system for patients.
                 </p>
 
                 <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap">
 
                     <a href="/patient" class="btn btn-lg btn-custom px-5 py-3">
                         Check Diabetes Now
+                    </a>
+
+                    <a href="/lab" class="btn btn-lg btn-success px-5 py-3">
+                        Pathology Lab System
                     </a>
 
                     <a href="/admin" target="_blank" class="btn btn-lg btn-outline-light px-5 py-3">
@@ -50,6 +56,50 @@
             </div>
         </div>
     </div>
+
+
+    <!-- SERVICES SECTION -->
+    <section class="py-5 bg-white home-section">
+        <div class="container">
+
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-primary">Our Services</h2>
+                <p class="text-muted">
+                    We provide healthcare services including AI-based diabetes prediction and pathology lab report
+                    management.
+                </p>
+            </div>
+
+            <div class="row g-4">
+
+                <!-- Diabetes Prediction -->
+                <div class="col-md-6">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">Diabetes Risk Prediction</h5>
+                        <p class="text-muted mt-2">
+                            This module uses machine learning algorithms to predict the risk of diabetes based on
+                            medical inputs like glucose, BMI, blood pressure, insulin, etc.
+                        </p>
+                        <a href="/patient" class="btn btn-primary mt-3">Start Prediction</a>
+                    </div>
+                </div>
+
+                <!-- Pathology Lab -->
+                <div class="col-md-6">
+                    <div class="card p-4 shadow-sm border-0 rounded-4 h-100">
+                        <h5 class="fw-bold text-primary">Pathology Lab Report System</h5>
+                        <p class="text-muted mt-2">
+                            This module helps pathology labs to register patients, enter test values, generate lab
+                            reports, and download PDF reports for patients.
+                        </p>
+                        <a href="/lab" class="btn btn-success mt-3">Open Lab System</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
 
 
     <!-- ABOUT DIABETES SECTION -->
@@ -146,7 +196,8 @@
                         <h5 class="fw-bold text-primary">Type 2 Diabetes</h5>
                         <p class="text-muted mt-2">
                             Type 2 diabetes is the most common type. It happens when the body becomes resistant to
-                            insulin or does not produce enough insulin. It is mainly caused by obesity and unhealthy lifestyle.
+                            insulin or does not produce enough insulin. It is mainly caused by obesity and unhealthy
+                            lifestyle.
                         </p>
                     </div>
                 </div>
@@ -166,6 +217,14 @@
 
         </div>
     </section>
+
+
+    <!-- FOOTER -->
+    <footer class="bg-dark text-white text-center py-3">
+        <p class="mb-0">
+            © 2026 HealthCare Diagnosis & Pathology Lab System | Developed by Shikhar Mishra & Team
+        </p>
+    </footer>
 
 </body>
 
