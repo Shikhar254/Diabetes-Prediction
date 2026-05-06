@@ -20,8 +20,10 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "diabetes_secret_key")
 
 # ---------------- ADMIN LOGIN ----------------
-ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
+ADMIN_USER = os.getenv("ADMIN_USER")
+ADMIN_PASS = os.getenv("ADMIN_PASS")
+if not ADMIN_USER or not ADMIN_PASS:
+    raise Exception("ADMIN_USER or ADMIN_PASS not set in environment variables!")
 
 # ---------------- DATABASE ----------------
 DATABASE_URL = os.environ.get("DATABASE_URL")
